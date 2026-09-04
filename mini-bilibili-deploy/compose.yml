@@ -34,7 +34,7 @@ services:
     logging: *default-logging
 
   redis:
-    image: redis:7.4-alpine
+    image: m.daocloud.io/docker.io/library/redis:7-alpine
     restart: unless-stopped
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}
