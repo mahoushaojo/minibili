@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.minibili.module.user.mapper.UserMapper">
+<!--    创建通用查询sql-->
+    <sql id="userColumn">
+      select id,name,phone,email,status,role,like_count,collect_count,fans_count,video_count,avatar,bio,interest_count,created_at,updated_at from users
+    </sql>
+
+<!--更新用户信息-->
+    <update id="editUser" parameterType="com.minibili.app.user.domain.dto.EditUserDTO">
+        update users
+        <set>
+            <if test="avatar != null and avatar != ''">
+                avatar = #{avatar},
+            </if>
+            <if test="bio != null and bio != ''">
+                bio = #{bio},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+<!--    根据条件查询用户列表-->
+    <select id="getUserList"
+            parameterType="com.minibili.app.user.domain.dto.UserListDTO"
+            resultType="com.minibili.module.user.domain.entity.Users">
+        <include refid="userColumn" />
+        <where>
+            <!--如果存在username字段，进行模糊查询-->
+            <if test="userName != null and userName != ''">
+               and lower(name) like lower(CONCAT('%',#{userName},'%'))
+            </if>
+            <!-- 如果存在状态-->
+            <if test="statusList != null and statusList.size() > 0">
+                and status in <foreach collection="statusList" item="status" open="(" separator="," close=")">
+                #{status}
+            </foreach>
+            </if>
+<!--            如果存在日期 -->
+            <if test="createdStartAt != null">
+<!--                等同于 created_at>=createdStartAt 判断创建时间大于开始时间-->
+                and created_at &gt;= #{createdStartAt}
+            </if>
+            <if test="createdEndAt != null">
+<!--                判断查询创建时间小于结束时间-->
+                and created_at &lt;= #{createdEndAt}
+            </if>
+        </where>
+    </select>
+
+<!--    更新用户的各种数量，比如点赞、视频、收藏-->
+    <update id="updateCount">
+        update users
+            <set>
+                <choose>
+                    <when test="type.name() == 'VIDEO'">
+                    <!-- 如果是视频数量-->
+                        video_count = greatest(video_count + #{delta}, 0)
+                    </when>
+                    <when test="type.name() == 'LIKE'">
+                        like_count = greatest(like_count + #{delta}, 0)
+                    </when>
+                    <when test="type.name() == 'COLLECT'">
+                        collect_count = greatest(collect_count + #{delta}, 0)
+                    </when>
+                    <when test="type.name() == 'FANS'">
+                        fans_count = greatest(fans_count + #{delta}, 0)
+                    </when>
+                </choose>
+            </set>
+        where id = #{userId}
+    </update>
+</mapper>

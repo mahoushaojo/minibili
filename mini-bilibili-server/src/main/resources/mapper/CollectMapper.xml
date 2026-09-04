@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.minibili.module.collect.mapper.CollectMapper">
+    <!--    创建通用查询sql-->
+   <sql id="collectColumn">
+    select id, user_id, video_id from collects
+   </sql>
+    
+    <!--    进行列表查询 可以通过视频标题进行模糊查询-->
+    <select id="getCollectList" resultType="com.minibili.module.collect.domain.vo.CollectListVO">
+        select c.id,c.user_id,c.video_id,v.title,v.cover,u.name as user_name from collects c
+                inner join videos v on c.video_id = v.id
+                inner join users u on v.user_id = u.id
+                where c.user_id = #{userId}
+        <if test="keyword != null and keyword !=''">
+            and v.title like concat('%',#{keyword},'%')
+        </if>
+    </select>
+</mapper>

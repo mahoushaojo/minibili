@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.minibili.module.video.mapper.VideoMapper">
+    <!--    创建通用查询sql-->
+    <sql id="videoColumn">
+        select id, user_id, title, cover, duration, `desc`, link_url, status, like_count, view_count, collect_count, comment_count, publish_at, created_at, updated_at from videos
+    </sql>
+
+
+    <!--   admin 根据条件查询视频列表-->
+    <select id="getAdminVideoList"
+            parameterType="com.minibili.admin.video.domain.dto.AdminVideoPageDTO"
+            resultType="com.minibili.module.video.domain.entity.Videos">
+        <include refid="videoColumn" />
+        <where>
+            <!--如果存在username字段，进行模糊查询-->
+            <if test="title != null and title != ''">
+                and lower(title) like lower(CONCAT('%',#{title},'%'))
+            </if>
+            <!-- 如果存在状态-->
+            <if test="statusList != null and statusList.size() > 0">
+                and status in <foreach collection="statusList" item="status" open="(" separator="," close=")">
+                #{status}
+            </foreach>
+            </if>
+            <!--            如果存在日期 -->
+            <if test="createdStartAt != null">
+                <!--                等同于 created_at>=createdStartAt 判断创建时间大于开始时间-->
+                and created_at &gt;= #{createdStartAt}
+            </if>
+            <if test="createdEndAt != null">
+                <!--                判断查询创建时间小于结束时间-->
+                and created_at &lt;= #{createdEndAt}
+            </if>
+            <!--            如果存在发布日期-->
+            <if test="publishStartAt != null">
+                and publish_at &gt;= #{publishStartAt}
+            </if>
+            <if test="publishEndAt != null">
+                and publish_at &lt;= #{publishEndAt}
+            </if>
+        </where>
+        order by created_at desc
+    </select>
+    <!--   app 获取首页视频列表 根据热门、推荐、最新-->
+    <select id="videoHomeList" parameterType="com.minibili.app.video.domain.dto.HomeListDTO" resultType="com.minibili.module.video.domain.entity.Videos">
+    <!--        播放一次：加 1 分。-->
+    <!--        点赞一次：加 2 分。-->
+    <!--        收藏一次：加 3 分。-->
+    <!--        评论一次：加 2 分。-->
+        <include refid="videoColumn" />
+        where status = 1
+        <choose>
+            <!-- 推荐 最近30天综合热度-->
+            <when test="type == 1">
+                and publish_at >= now() - interval 30 day
+                order by (
+                    view_count + like_count * 2 + collect_count * 3 + comment_count * 2
+                ) desc , publish_at desc, id desc;
+            </when>
+            <!-- 热门 历史累计综合热度-->
+            <when test="type == 2">
+                order by (
+                    view_count + like_count * 2 + collect_count * 3 + comment_count * 2
+                ) desc, id desc;
+            </when>
+            <!-- 最新 发布时间-->
+            <when test="type == 3">
+                order by publish_at desc, id desc;
+            </when>
+            <!-- 参数异常时的默认排序 -->
+            <otherwise>
+                order by publish_at desc, id desc
+            </otherwise>
+        </choose>
+    </select>
+
+    <!--    修改视频信息-->
+    <update id="editVideo">
+        update videos
+            <set>
+                <if test="dto.title !=null and dto.title !=''">
+                    title = #{dto.title},
+                </if>
+                <if test="dto.cover !=null and dto.cover !=''">
+                    cover = #{dto.cover},
+                </if>
+                <if test="dto.desc != null">
+                    `desc` = #{dto.desc}
+                </if>
+            </set>
+        where id = #{dto.id} and user_id = #{userId} and status in(0,2)
+    </update>
+
+    <!--    视频点赞 点赞数量+1-->
+    <update id="updateCount">
+        update videos
+            <set>
+                <choose>
+                    <when test="type.name() == 'VIEW'">
+                        <!-- 如果是视频数量-->
+                        view_count = greatest(view_count + #{delta}, 0)
+                    </when>
+                    <when test="type.name() == 'LIKE'">
+                        like_count = greatest(like_count + #{delta}, 0)
+                    </when>
+                    <when test="type.name() == 'COLLECT'">
+                        collect_count = greatest(collect_count + #{delta}, 0)
+                    </when>
+                    <when test="type.name() == 'COMMENT'">
+                        comment_count = greatest(comment_count + #{delta}, 0)
+                    </when>
+                </choose>
+            </set>
+        where id = #{vid};
+    </update>
+</mapper>

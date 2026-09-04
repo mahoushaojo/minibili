@@ -1,0 +1,29 @@
+GET http://localhost:80/api/item?id=99
+Accept: application/json
+
+###
+### 登录
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "email": "2448241472@qq.com",
+  "password": "7471123"
+}
+
+> {%
+    client.global.set(
+        "access_token",
+        response.body.data.accessToken
+    );
+%}
+
+### 获取当前用户
+GET http://localhost:8080/user/info
+Authorization: Bearer {{access_token}}
+
+### 刷新 Token
+POST http://localhost:8080/auth/refresh
+
+### 登出
+POST http://localhost:8080/auth/loginOut

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.minibili.module.video.mapper.VideoCategoriesMapper">
+    <!--    创建通用查询sql-->
+    <sql id="categoryColumn">
+        select id, video_id, category_id, created_at from video_categories
+    </sql>
+
+    <!--    批量新增-->
+    <insert id="batchAdd">
+        insert into video_categories(video_id, category_id) VALUES
+            <foreach collection="categoryIdList" item="categoryId" separator=",">
+                (#{videoId},#{categoryId})
+            </foreach>
+    </insert>
+
+    <!--    批量删除-->
+    <delete id="batchDelete">
+        delete from video_categories where video_id = #{videoId};
+    </delete>
+
+    <!--    根据视频id批量查询-->
+    <select id="findByVideoIds" resultType="com.minibili.module.video.domain.entity.VideoCategories">
+        select vc.*, c.name as categoryName from video_categories vc
+        inner join categories c on vc.category_id = c.id
+        where vc.video_id in
+            <foreach collection="videoIdList" item="videoId" open="(" separator="," close=")">
+                #{videoId}
+            </foreach>
+    </select>
+</mapper>

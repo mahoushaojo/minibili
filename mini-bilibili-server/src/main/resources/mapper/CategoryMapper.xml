@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.minibili.module.category.mapper.CategoryMapper">
+    <!--    创建通用查询sql-->
+    <sql id="categoryColumn">
+        select id, name, sort, status, created_at, updated_at from categories
+    </sql>
+
+    <!--    查询列表-->
+    <select id="findList" resultType="com.minibili.module.category.domain.vo.CategoryVO">
+        <include refid="categoryColumn" />
+        <where>
+            <if test="status !=null and status !=''">
+                and status = #{status}
+            </if>
+            <if test="name != null and name !=''">
+                and lower(name) like lower(concat('%',#{name},'%'))
+            </if>
+        </where>
+        order by sort desc;
+    </select>
+
+</mapper>
