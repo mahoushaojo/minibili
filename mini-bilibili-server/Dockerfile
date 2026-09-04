@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1.7
-
 FROM m.daocloud.io/docker.io/library/maven:3.9-eclipse-temurin-21 AS builder
 
 WORKDIR /app
