@@ -30,7 +30,7 @@ services:
       retries: 15
       start_period: 30s
     networks:
-      - app_network
+      - minibili-network
     logging: *default-logging
 
   redis:
@@ -52,7 +52,7 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - app_network
+      - minibili-network
     logging: *default-logging
 
   server:
@@ -96,7 +96,7 @@ services:
     ports:
       - "127.0.0.1:${SERVER_HOST_PORT:-8084}:8084"
     networks:
-      - app_network
+      - minibili-network
     logging: *default-logging
 
   web:
@@ -112,7 +112,7 @@ services:
     ports:
       - "127.0.0.1:${WEB_PORT:-8080}:80"
     networks:
-      - app_network
+      - minibili-network
     logging: *default-logging
 
   admin:
@@ -128,7 +128,7 @@ services:
     ports:
       - "127.0.0.1:${ADMIN_PORT:-8081}:80"
     networks:
-      - app_network
+      - minibili-network
     logging: *default-logging
 
   nginx:
@@ -147,35 +147,9 @@ services:
     networks:
       - minibili-network
 
-  gateway:
-    image: caddy:2-alpine
-    profiles:
-      - production
-    restart: unless-stopped
-    environment:
-      WEB_DOMAIN: ${WEB_DOMAIN:?Set WEB_DOMAIN in .env}
-      ADMIN_DOMAIN: ${ADMIN_DOMAIN:?Set ADMIN_DOMAIN in .env}
-    depends_on:
-      - web
-      - admin
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    networks:
-      - app_network
-    logging: *default-logging
-
-
 volumes:
   mysql_data:
   redis_data:
-  caddy_data:
-  caddy_config:
 
 networks:
   minibili-network:
