@@ -107,7 +107,11 @@ public class VideoServiceImpl implements VideoService {
     public PageResult<AdminVideoListVO> adminVideoList(AdminVideoPageDTO adminVideoPageDTO){
         PageUtils.startPage(adminVideoPageDTO);
         List<Videos> list = videoMapper.getAdminVideoList(adminVideoPageDTO);
-
+        // 如果没值 返回空
+        if (list == null || list.isEmpty()){
+            PageInfo<AdminVideoListVO> pageInfo = new PageInfo<>(Collections.emptyList());
+            return PageResult.from(pageInfo);
+        }
         // 获取所有的videoId
         List<Long> videoIds = list.stream().map(Videos::getId).toList();
         // 一次性查询这些视频对应的分类 解决N+1问题
