@@ -163,3 +163,17 @@ volumes:
 networks:
   app_network:
     driver: bridge
+
+nginx:
+  image: nginx:alpine
+  container_name: minibili-nginx
+  restart: unless-stopped
+  ports:
+    - "80:80"
+    - "443:443"
+  volumes:
+    - ./nginx/conf.d:/etc/nginx/conf.d:ro
+  depends_on:
+    - web
+    - admin
+    - server
