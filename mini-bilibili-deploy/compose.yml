@@ -144,6 +144,8 @@ services:
       - web
       - admin
       - server
+    networks:
+      - minibili-network
 
   gateway:
     image: caddy:2-alpine
@@ -168,6 +170,7 @@ services:
       - app_network
     logging: *default-logging
 
+
 volumes:
   mysql_data:
   redis_data:
@@ -175,6 +178,6 @@ volumes:
   caddy_config:
 
 networks:
-  app_network:
+  minibili-network:
     driver: bridge
 
