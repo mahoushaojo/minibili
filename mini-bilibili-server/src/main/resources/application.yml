@@ -1,6 +1,8 @@
 spring:
   config:
-    import: optional:file:.env[.properties]
+    # Support IDE runs from either the repository root or this backend module.
+    # Docker prod continues to use its injected environment variables.
+    import: optional:file:.env[.properties],optional:file:mini-bilibili-server/.env[.properties]
   application:
     name: mini-bilibili-server
   profiles:
@@ -21,4 +23,3 @@ aliyun:
     domain: ${OSS_PUBLIC_DOMAIN:https://media.fanzhuan.online}
     access-key-id: ${OSS_ACCESS_KEY_ID}
     access-key-secret: ${OSS_ACCESS_KEY_SECRET}
-

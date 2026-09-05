@@ -1,9 +1,11 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:mini_bili}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD}
+    # Local development has its own variable namespace so Docker/prod DB_*
+    # variables cannot silently redirect a local run to the server database.
+    url: jdbc:mysql://${LOCAL_DB_HOST:localhost}:${LOCAL_DB_PORT:3306}/${LOCAL_DB_NAME:mini_bili}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    username: ${LOCAL_DB_USERNAME:root}
+    password: ${LOCAL_DB_PASSWORD}
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
     locations: classpath:db/migration

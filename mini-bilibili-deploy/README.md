@@ -35,6 +35,32 @@ cp .env.example .env
 
 不要提交 `.env`。示例文件只能包含占位符。
 
+### 将正式环境变量同步到服务器
+
+`.env` 被 Git 忽略，因此 `git pull` 不会创建、更新或覆盖服务器上的 `.env`。
+需要从本机项目根目录单独上传部署目录的正式环境文件：
+
+```bash
+scp mini-bilibili-deploy/.env root@47.116.170.71:/tmp/mini-bilibili-deploy.env.new
+```
+
+然后登录服务器，备份当前配置并以仅 root 可读的权限安装新文件：
+
+```bash
+ssh root@47.116.170.71
+cd /opt/minibili/minibili/mini-bilibili-deploy
+cp .env ".env.backup.$(date +%Y%m%d-%H%M%S)"
+install -m 600 /tmp/mini-bilibili-deploy.env.new .env
+rm /tmp/mini-bilibili-deploy.env.new
+docker compose config --quiet
+docker compose up -d --force-recreate server
+docker compose ps
+docker compose logs --tail=100 server
+```
+
+只修改环境变量时不需要重新构建镜像，重新创建 `server` 容器即可。
+修改 MySQL 初始化变量不会改变现有数据卷里的账号或密码；不要通过重建或删除 volume 来同步数据库密码。
+
 ## 2. 已有数据库先备份
 
 Compose 中的 MySQL 使用新的 Docker Volume，默认不会自动包含原有容器的数据。如果现有数据库有数据，请先导出：
